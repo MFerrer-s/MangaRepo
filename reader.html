@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MangaScan Reader Ultimate</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style id="theme-style">
+    body, html { margin:0; padding:0;}
+    body[data-theme="light"] {
+      --bg: #f7fafb;
+      --fg: #242739;
+      --box-bg: #eaf2fa;
+      --box-2: #cfd2ee;
+      --main: #0057ae;
+      --accent: #202c38;
+      --nav: #f8fafd;
+      --hover: #30dbfd2a;
+      --btn: #2078e4;
+      --btn-hover: #333ea0;
+    }
+    body[data-theme="dark-blue"] {
+      --bg: #181828;
+      --fg: #eaeaea;
+      --box-bg: #232345;
+      --box-2: #31395b;
+      --main: #48eaff;
+      --accent: #1c2e53;
+      --nav: #31395b;
+      --hover: #48eaff25;
+      --btn: #47e4ff;
+      --btn-hover: #183996;
+    }
+    body[data-theme="black"] {
+      --bg: #121214;
+      --fg: #f5f5f5;
+      --box-bg: #101014;
+      --box-2: #1b1b25;
+      --main: #fafa96;
+      --accent: #35bacc;
+      --nav: #19191a;
+      --hover: #fff1;
+      --btn: #60687d;
+      --btn-hover: #a5a5a5;
+    }
+    body[data-theme="beige"] {
+      --bg: #f6efdf;
+      --fg: #3b3122;
+      --box-bg: #faebd9;
+      --box-2: #ecdec0;
+      --main: #b35e09;
+      --accent: #7f4d19;
+      --nav: #fed;
+      --hover: #e6c47947;
+      --btn: #ddb87b;
+      --btn-hover: #ab7537;
+    }
+    body[data-theme="red"] {
+      --bg: #1e1010;
+      --fg: #ffe2e2;
+      --box-bg: #331111;
+      --box-2: #471313;
+      --main: #f34c58;
+      --accent: #f16464;
+      --nav: #411b1b;
+      --hover: #ec767633;
+      --btn: #c8243b;
+      --btn-hover: #f34c58;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-height:100vh;
+      transition: background 0.23s, color 0.18s;
+    }
+    #header-hover-zone {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      z-index: 2040;
+      height: 17px;
+      background: transparent;
+      cursor: pointer;
+    }
+    #header-main {
+      position: fixed;
+      width: 100%;
+      top: 0; left: 0; right: 0;
+      z-index: 2080;
+      background: linear-gradient(90deg, var(--nav) 60%, var(--box-2));
+      box-shadow: 0 3px 33px #0004, 0 1px 0 var(--box-2);
+      transition: transform .26s cubic-bezier(.53,.17,.6,.94), background .3s;
+      transform: translateY(-130%);
+      opacity: .97;
+      padding: 1px 10vw 1px 3vw;
+      will-change: transform;
+      pointer-events: auto;
+    }
+    #header-main.visible {
+      transform: translateY(0%);
+      transition: transform .14s cubic-bezier(.59,.06,.87,.49), background .18s;
+    }
+    #header-main-flex {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      min-height: 70px;
+    }
+    .coverimg { width:48px;height:70px;object-fit:cover;border-radius:8px;background:#fff;box-shadow:0 2px 8px #395;}
+    .site-badge { background: var(--accent); color: #fff; font-size:.97em; border-radius:5px; padding:2.5px 11px; margin-left:12px;}
+    #bookmark-btn {
+      border: none; background: transparent; font-size: 1.4em; margin-left: 12px; cursor: pointer;
+      color: #fffc74; filter: drop-shadow(2px 3px 3px #0002);
+      transition: color .1s;
+    }
+    #bookmark-btn.bookmarked { color:#ffbe1a; }
+    #theme-dropdown {
+      margin-left: auto;
+      font-size: 1em; border-radius: 7px; border: 1.5px solid #273765; background: var(--box-2); color: var(--main);
+        padding: 5px 40px 5px 8px; cursor:pointer;
+      min-width: 100px;
+      max-width: 150px;
+    }
+    #headerTitleBox h1 { font-size:1.19em; margin:0 0 1px 0; color: var(--main); font-weight:700; letter-spacing: .06em;text-shadow:0 1px 6px #0005;white-space:nowrap; overflow:hidden;text-overflow:ellipsis;max-width:40vw;}
+    #headerTitleBox small { color: #aaa; font-size:.9em; }
+    @media (max-width:520px) {
+      #header-main-flex { flex-direction:column; align-items:flex-start;}
+      #headerTitleBox h1 { max-width:96vw; font-size:1.03em;}
+    }
+    #bookmark-overlay {
+      position: fixed;
+      left: 50%; top: 20px;
+      transform: translateX(-50%);
+      background: var(--btn); color: #fff;
+      padding: 10px 36px; border-radius: 12px; font-size: 1.08em; box-shadow: 0 3px 14px #000b; z-index: 3000;
+      opacity: 0; pointer-events:none; transition: opacity .28s;
+    }
+    #bookmark-overlay.visible { opacity: 1; pointer-events:auto;}
+    #main-content {padding-top: 25px;}
+    #chapterNav {display:flex; gap:15px; align-items:center; justify-content:center; margin:22px 0 20px 0; flex-wrap: wrap;}
+    .ctrl-btn {
+      background: var(--btn); color: var(--fg); border: none; border-radius: 9px; font-weight: bold;
+      padding: 8px 18px; font-size: 1.03em; cursor:pointer;
+      margin: 3px 0 3px 0; transition: background .13s, color .11s;
+    }
+    .ctrl-btn:hover { background:var(--btn-hover); color:#fff;}
+    #chapterSel, #chapterInput {
+      font-size:.99em; padding:4px 10px; border-radius:6px;
+      border: 1.2px solid var(--main); background: var(--box-2); color: var(--fg);
+      width:55px; margin:0 1px;
+    }
+    #chapterSel { width:auto; }
+    option.bookmarked:after { content: " ★"; }
+    #pagebox { background: var(--box-bg); border-radius: 14px; box-shadow: 0 4px 32px #0019; max-width: 700px; width: 96vw; margin:0 auto 28px auto; position: relative; text-align:center; margin-bottom: 90px;}
+    #pageimg { max-width:100%;border-radius: 14px; background:#191929;width:100%;display:block; }
+    .click-zones {position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;display:flex;z-index:14;}
+    .zone { flex:1; cursor:pointer; user-select:none;opacity:0;}
+    #pagebox:hover .zone{opacity:0.1;background:var(--hover);}
+    .zone.left {border-radius:14px 0 0 14px;}
+    .zone.right {border-radius:0 14px 14px 0;}
+    .zone:active{opacity:.18;}
+    #pagebar { text-align:center; color:#bbb; opacity:.77;margin:7px 0 8px 0;font-size:.99em;}
+    #errormsg {text-align:center;color:#e1293b;margin:31px 0 0 0;font-size:1.16em;}
+    #minibar { position:fixed;bottom:25px;right:32px;z-index:101;display:flex; gap:9px;background:var(--box-2);border-radius:14px;box-shadow:0 2px 13px #0007; padding:8px 14px;opacity:.95;align-items:center;transition:box-shadow .12s;}
+    #minibar button, #minibar select {
+      border:none; background: var(--btn); border-radius:8px;color:var(--fg); padding:8px 11px;font-size:1.13em;cursor:pointer;margin:0;
+      transition: background .12s;
+    }
+    #minibar button:hover { background:var(--btn-hover); color:#fff;}
+    #minibar svg { vertical-align:-0.18em;}
+    @media (max-width:680px){#minibar{right:6px;left:6vw;bottom:6px;padding:7px 3vw;}#minibar{ font-size:.87em; }}
+    body { scrollbar-width: thin; scrollbar-color: #b9eaff22 var(--bg);}
+    ::-webkit-scrollbar { width: 9px; background: var(--bg);}
+    ::-webkit-scrollbar-thumb { background: #1ceaff22; border-radius:8px; }
+  </style>
+</head>
+<body data-theme="dark-blue">
+<div id="header-hover-zone" tabindex="0"></div>
+<nav id="header-main">
+  <div id="header-main-flex">
+    <img id="cover" class="coverimg" src="" alt="">
+    <div id="headerTitleBox">
+      <h1 id="manga-title"></h1>
+      <small><span id="siteLabel"></span></small>
+    </div>
+    <button id="bookmark-btn" title="Bookmark this spot">☆</button>
+    <select id="theme-dropdown" title="Theme">
+      <option value="dark-blue">Dark Blue</option>
+      <option value="black">True Black</option>
+      <option value="light">Light</option>
+      <option value="beige">Beige</option>
+      <option value="red">Dark Red</option>
+    </select>
+  </div>
+</nav>
+<div id="bookmark-overlay"></div>
+<div id="main-content">
+  <div id="chapterNav">
+    <button class="ctrl-btn" id="prevChapBtn" title="[ key">&laquo; Prev Chap</button>
+    <span>
+        Chapter
+        <select id="chapterSel"></select>
+        <input id="chapterInput" type="number" min="1" max="9999" value="1">
+        <button class="ctrl-btn" id="goChapBtn">Go</button>
+      </span>
+    <button class="ctrl-btn" id="nextChapBtn" title="] key">Next Chap &raquo;</button>
+  </div>
+  <main>
+    <div id="pagebox" style="display:none;">
+      <img id="pageimg" src="" alt="Page" />
+      <div class="click-zones"><div class="zone left"></div><div class="zone right"></div></div>
+      <div id="pagebar"></div>
+    </div>
+    <div id="errormsg" style="display:none;"></div>
+  </main>
+</div>
+<div id="minibar">
+  <button id="mb-prev-page" title="Previous page">&#8678;</button>
+  <button id="mb-first-page" title="First page">&#8676;</button>
+  <button id="mb-top" title="Scroll to top">&#8593;</button>
+  <button id="mb-bottom" title="Scroll to bottom">&#8595;</button>
+  <button id="mb-last-page" title="Last page">&#8680;</button>
+  <button id="mb-next-page" title="Next page">&#8680;</button>
+  <button id="mb-bookmark" title="Bookmark">&#9734;</button>
+  <select id="mb-theme">
+    <option value="dark-blue">Blue</option>
+    <option value="black">Black</option>
+    <option value="light">Light</option>
+    <option value="beige">Beige</option>
+    <option value="red">Red</option>
+  </select>
+</div>
+<script>
+  const header = document.getElementById('header-main');
+  const hoverZone = document.getElementById('header-hover-zone');
+  let headerTimeout, headerShowFor = 3400, headerSticky = false;
+  function showHeader(forceTime) {
+    header.classList.add('visible');
+    clearTimeout(headerTimeout);
+    if(!headerSticky) {
+      headerTimeout = setTimeout(()=>header.classList.remove('visible'), forceTime||2400);
+    }
+  }
+  hoverZone.addEventListener('mouseenter', ()=>{ showHeader(); });
+  hoverZone.addEventListener('touchstart', ()=>{ showHeader(3000); });
+  header.addEventListener('mouseenter', ()=>{ headerSticky=true; showHeader(9999999); });
+  header.addEventListener('mouseleave', ()=>{ headerSticky=false; header.classList.remove('visible'); });
+  setTimeout(()=>{ showHeader(2300); }, 150);
+
+  function getHashParams() {
+    const h = location.hash.replace(/^#/, '');
+    let params = {};
+    h.split('&').forEach(p=>{const[k,v]=p.split('=');if(k&&v)params[k]=decodeURIComponent(v)});
+    return params;
+  }
+  const scanSites = {
+    "asura": {
+      label: "Asura Scans",
+      pattern: "https://cdn.asurascans.com/asura-images/chapters/{manga_slug}/{chapter}/{page}.webp",
+      catalog: "https://asuracomics.com/manga/"
+    }
+  };
+  let params, site, mangaSlug, chapter, siteObj, pattern, chapterCount=0, chapterList=[];
+  let currentPage = 1, lastValidPage = 0, hitLastPage = false;
+  const cover = document.getElementById('cover'),
+          mt = document.getElementById('manga-title'),
+          siteLabel = document.getElementById('siteLabel'),
+          pageimg = document.getElementById('pageimg'),
+          pagebox = document.getElementById('pagebox'),
+          pagebar = document.getElementById('pagebar'),
+          errormsg = document.getElementById('errormsg'),
+          prevChapBtn = document.getElementById('prevChapBtn'),
+          nextChapBtn = document.getElementById('nextChapBtn'),
+          chapterSel = document.getElementById('chapterSel'),
+          chapterInput = document.getElementById('chapterInput'),
+          goChapBtn = document.getElementById('goChapBtn'),
+          bookmarkBtn = document.getElementById('bookmark-btn'),
+          themeDropdown = document.getElementById('theme-dropdown'),
+          bookmarkOverlay = document.getElementById('bookmark-overlay');
+  const minibar = document.getElementById('minibar'),
+          mbPrev = document.getElementById('mb-prev-page'),
+          mbNext = document.getElementById('mb-next-page'),
+          mbFirst = document.getElementById('mb-first-page'),
+          mbLast = document.getElementById('mb-last-page'),
+          mbTop = document.getElementById('mb-top'),
+          mbBottom = document.getElementById('mb-bottom'),
+          mbBookmark = document.getElementById('mb-bookmark'),
+          mbTheme = document.getElementById('mb-theme');
+  const THEMES = [
+    {name:"Dark Blue", value:"dark-blue"},
+    {name:"True Black", value:"black"},
+    {name:"Light", value:"light"},
+    {name:"Beige", value:"beige"},
+    {name:"Dark Red", value:"red"}
+  ];
+  function setTheme(theme) {
+    document.body.setAttribute('data-theme', theme);
+    themeDropdown.value = theme;
+    mbTheme.value = theme;
+    localStorage.setItem('mangaReaderTheme', theme);
+  }
+  function loadTheme() {
+    let t = localStorage.getItem('mangaReaderTheme') || "dark-blue";
+    setTheme(t);
+  }
+  themeDropdown.onchange = ()=>setTheme(themeDropdown.value);
+  mbTheme.onchange = ()=>setTheme(mbTheme.value);
+  loadTheme();
+  THEMES.forEach(opt=>{
+    if(![...themeDropdown.options].some(o=>o.value===opt.value))
+      themeDropdown.appendChild(Object.assign(document.createElement('option'),{value:opt.value,textContent:opt.name}));
+    if(![...mbTheme.options].some(o=>o.value===opt.value))
+      mbTheme.appendChild(Object.assign(document.createElement('option'),{value:opt.value,textContent:opt.name}));
+  });
+  function getBookmarkKey() {
+    return `bookmark:${site}:${mangaSlug}`;
+  }
+  function setBookmark(page) {
+    let bm={chapter:chapter,page:page};
+    localStorage.setItem(getBookmarkKey(), JSON.stringify(bm));
+    bookmarkBtn.classList.add('bookmarked');
+    mbBookmark.classList.add('bookmarked');
+    showBookmarkOverlay(`★ Bookmark saved (C${chapter}P${page})`);
+  }
+  function getBookmark() {
+    let raw = localStorage.getItem(getBookmarkKey());
+    if(!raw)return null;
+    try{return JSON.parse(raw);}catch{ return null; }
+  }
+  function checkBookmarkIcon() {
+    let bm = getBookmark();
+    bookmarkBtn.classList.toggle('bookmarked',!!bm);
+    mbBookmark.classList.toggle('bookmarked',!!bm);
+  }
+  function jumpToBookmark() {
+    let bm = getBookmark();
+    if(bm && bm.chapter && bm.page) {
+      if(bm.chapter!==chapter){
+        window.location.hash = `site=${site}&slug=${mangaSlug}&chapter=${bm.chapter}`;
+        setTimeout(()=>showPage(bm.page), 320);
+      } else {
+        showPage(bm.page);
+      }
+      showBookmarkOverlay(`Resumed at bookmark: C${bm.chapter}P${bm.page}`);
+    }
+  }
+  function showBookmarkOverlay(msg) {
+    bookmarkOverlay.textContent = msg;
+    bookmarkOverlay.classList.add('visible');
+    setTimeout(()=>bookmarkOverlay.classList.remove('visible'),1500);
+  }
+  bookmarkBtn.onclick = ()=>setBookmark(currentPage);
+  mbBookmark.onclick = ()=>setBookmark(currentPage);
+
+  function mainLoad() {
+    params = getHashParams();
+    site = params.site || 'asura';
+    mangaSlug = params.slug || '';
+    chapter = Number(params.chapter) || 1;
+    currentPage = 1; lastValidPage = 0; hitLastPage = false;
+    siteObj = scanSites[site]; pattern = siteObj?.pattern;
+    if(!siteObj || !mangaSlug){
+      mt.textContent = "Manga not found";
+      cover.src = ""; cover.style.display = "none";
+      pagebox.style.display="none"; errormsg.style.display="";
+      errormsg.textContent = "Invalid scan source or manga selected.";
+      return;
+    }
+    cover.src = ""; cover.style.display="none";
+    mt.textContent = mangaSlug.replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+    siteLabel.textContent = siteObj.label;
+    fetch(siteObj.catalog + mangaSlug)
+            .then(r=>r.text())
+            .then(html=>{
+              const el = document.createElement('div'); el.innerHTML = html;
+              let img = el.querySelector('.summary_image img') || el.querySelector('.thumb img');
+              if(img && (img.getAttribute('data-src')||img.src)) {
+                cover.src = img.getAttribute('data-src') || img.src; cover.style.display="";
+              }
+              let ttl = el.querySelector('.post-title h1')?.textContent || mt.textContent;
+              mt.textContent = ttl;
+              chapterList = [...el.querySelectorAll('.chapters-list a,.eph-num a,.chpter-list a')]
+                      .map(a=>{
+                        const m = a.href.match(/chapter[\/\-](\d+)/i) || a.href.match(/(\d+)(?!.*\d)/)
+                        return m ? Number(m[1]) : null;
+                      }).filter(x=>x).sort((a,b)=>a-b);
+              if(chapterList.length>0) {
+                chapterCount = Math.max(...chapterList);
+                chapter = Math.max(Math.min(chapter,chapterCount),Math.min(...chapterList));
+              } else {
+                chapterCount = 999;
+              }
+              populateChapterSel();
+              setTimeout(()=>{ jumpToBookmark(); }, 300);
+              showPage(1);
+            })
+            .catch(()=>{
+              cover.src=""; cover.style.display="none";
+              mt.textContent = mangaSlug; chapterList=[]; chapterCount=999;
+              populateChapterSel(); showPage(1);
+            });
+    checkBookmarkIcon();
+  }
+  function populateChapterSel() {
+    chapterSel.innerHTML='';
+    let useList = chapterList.length>0;
+    let range = useList ? chapterList : Array.from({length:Math.min(chapterCount,500)},(_,x)=>x+1);
+    let bookmark = getBookmark();
+    range.forEach(n => {
+      let op = document.createElement('option');
+      op.value = n; op.textContent = n;
+      if(n===chapter)op.selected=true;
+      if(bookmark && bookmark.chapter===n) op.textContent+=" ★";
+      chapterSel.appendChild(op);
+    });
+    chapterInput.value = chapter;
+    chapterInput.min = Math.min(...range);
+    chapterInput.max = Math.max(...range);
+  }
+  chapterSel.onchange = function() {
+    location.hash = `site=${site}&slug=${mangaSlug}&chapter=${chapterSel.value}`;
+  }
+  goChapBtn.onclick = function() {
+    let val = Number(chapterInput.value); if(val>=1) location.hash = `site=${site}&slug=${mangaSlug}&chapter=${val}`;
+  };
+  chapterInput.onkeyup = function(e){if(e.key==="Enter"){goChapBtn.onclick();}}
+  prevChapBtn.onclick = function(){
+    let v = Math.max(1, Number(chapterInput.value)-1);
+    if(v>=1&&v!==chapter) location.hash=`site=${site}&slug=${mangaSlug}&chapter=${v}`;
+  }
+  nextChapBtn.onclick = function(){
+    let v = Math.min(chapterCount, Number(chapterInput.value)+1);
+    if(v!==chapter) location.hash=`site=${site}&slug=${mangaSlug}&chapter=${v}`;
+  }
+  function showPage(pageno) {
+    if(pageno<1)return;
+    hitLastPage=false; errormsg.style.display='none'; pageimg.style.display='none'; pagebox.style.display='';
+    let imgUrl=pattern.replace('{manga_slug}',mangaSlug)
+            .replace('{chapter}',chapter)
+            .replace('{page}',String(pageno).padStart(3,'0'));
+    pageimg.src=imgUrl; pagebar.textContent=`Page ${pageno} (loading...)`; currentPage=pageno;
+    pageimg.onload=function(){
+      pageimg.style.display=''; errormsg.style.display='none'; pagebar.textContent=`Page ${pageno}`;
+      lastValidPage=pageno; setTimeout(()=>checkBookmarkIcon(),200);
+    };
+    pageimg.onerror=function(){
+      if(pageno===1) {
+        pageimg.style.display='none'; pagebar.textContent='';
+        errormsg.textContent="No pages/chapter not found."; errormsg.style.display='';
+      } else {
+        hitLastPage = true;
+        if(lastValidPage) { showPage(lastValidPage); pagebar.textContent = `Page ${lastValidPage} (last)`;} else {pagebox.style.display='none';errormsg.style.display='';errormsg.textContent="No images.";}
+      }
+    }
+  }
+  pagebox.querySelector('.zone.left').onclick = mbPrev.onclick = function() {
+    if(currentPage>1)showPage(currentPage-1);
+  };
+  pagebox.querySelector('.zone.right').onclick = mbNext.onclick = function() {
+    if(!hitLastPage)showPage(currentPage+1);
+  };
+  mbFirst.onclick =function(){ showPage(1); };
+  mbLast.onclick = function(){
+    for(let i=currentPage+1;i<=999;i++){
+      let imgUrl=pattern.replace('{manga_slug}',mangaSlug)
+              .replace('{chapter}',chapter)
+              .replace('{page}',String(i).padStart(3,'0'));
+      let img = new Image();
+      img.onload=()=>{};
+      img.onerror=()=>{ showPage(i-1);}
+      img.src=imgUrl;
+      break;
+    }
+  };
+  mbTop.onclick = ()=>window.scrollTo({top:0,behavior:"smooth"});
+  mbBottom.onclick = ()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+  document.addEventListener('keydown', function(e) {
+    if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+    if(e.key==='ArrowLeft') mbPrev.onclick();
+    if(e.key==='ArrowRight') mbNext.onclick();
+    if(e.key==="[") prevChapBtn.onclick();
+    if(e.key==="]") nextChapBtn.onclick();
+    if(e.key==="b"||e.key==="B") jumpToBookmark();
+    if(e.key==="Escape") header.classList.remove('visible');
+  });
+  [pagebox,mbPrev,mbNext].forEach(el=>{
+    el.addEventListener('click',()=>{});
+  });
+  window.addEventListener('hashchange', mainLoad);
+  mainLoad();
+</script>
+</body>
+</html>
